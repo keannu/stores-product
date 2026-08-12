@@ -70,4 +70,25 @@ This is an early-stage Laravel + Vue 3 SPA setup running via Laragon.
 - **Vue alias**: `vite.config.js` aliases `vue` to `vue/dist/vue.esm-bundler.js` (full build including template compiler)
 - **Fonts**: Bunny Fonts (Instrument Sans) loaded via `laravel-vite-plugin/fonts`
 
-New controllers go in `app/Http/Controllers/`, models in `app/Models/`. Vue components should live in `resources/js/` (e.g., `resources/js/components/`).
+### Backend Layer Structure (MVC + Service Layer)
+
+**Middleware** (`app/Http/Middlewares/`)
+- Handles request validation and guards before reaching the controller
+- Applied per-route in `routes/web.php` using `->middleware(ClassName::class)`
+- Must contain no business logic — only validate and pass through or reject
+
+**Controller** (`app/Http/Controllers/`)
+- Receives validated requests and returns API responses
+- Injects the Service layer via constructor injection
+- Must contain no business logic — delegate everything to Services
+
+**Service** (`app/Services/`)
+- Owns all business and application logic for a given feature
+- Injects the Model layer via constructor injection
+- Must contain no HTTP concerns — no Request or Response objects
+
+**Model** (`app/Models/`)
+- Owns the database structure, relationships, and query scopes
+- Must contain no business logic — data definition and access only
+
+New middlewares go in `app/Http/Middlewares/`, controllers in `app/Http/Controllers/`, services in `app/Services/`, models in `app/Models/`. Vue components should live in `resources/js/` (e.g., `resources/js/components/`).

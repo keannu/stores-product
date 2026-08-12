@@ -3,33 +3,26 @@
 namespace App\Http\Controllers\Login;
 
 use App\Http\Controllers\Controller;
+use App\Services\Login\LoginService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 
 class LoginController extends Controller
 {
-    public function login(Request $request)
+    public function __construct(private LoginService $loginService) {}
+
+    public function login(Request $request): JsonResponse
     {
-        $credentials = $request->validate([
-            'username' => ['required', 'string'],
-            'password' => ['required', 'string'],
-        ]);
-
-        if (Auth::attempt(['name' => $credentials['username'], 'password' => $credentials['password']])) {
-            $request->session()->regenerate();
-
-            return response()->json(['message' => 'Login successful']);
+        if (!$this->loginService->login($request->only(['username', 'password']), $request)) {
+            return response()->json(['message' => 'Invalid credentials'], 401);
         }
 
-        return response()->json(['message' => 'Invalid credentials'], 401);
+        return response()->json(['message' => 'Login successful']);
     }
 
-    public function logout(Request $request)
+    public function logout(Request $request): JsonResponse
     {
-        Auth::logout();
-
-        $request->session()->invalidate();
-        $request->session()->regenerateToken();
+        $this->loginService->logout($request);
 
         return response()->json(['message' => 'Logged out']);
     }
