@@ -10,6 +10,19 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **Database**: SQLite (default, configured in `.env`)
 - **Testing**: PHPUnit 12 (tests use in-memory SQLite)
 
+## Self-Improving CLAUDE.md
+This file is persistent memory across sessions — if it's wrong, future sessions
+will write wrong code. Keep it accurate:
+- Delete outdated sections instead of leaving them stale
+- Add new patterns as they're established
+- When a decision changes, update `memory/decisions.md`, not just this file
+
+## MANDATORY: Read Context Files Before Working
+Before starting architectural work:
+1. Read `memory/decisions.md` — past architectural decisions. Follow them
+   unless the user explicitly changes direction.
+4. Never re-decide something already decided — if it's documented, follow it.
+
 ## Commands
 
 ### Full dev environment (all services concurrently)
