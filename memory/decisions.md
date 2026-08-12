@@ -20,6 +20,14 @@ Every feature gets its own named subdirectory on both the Laravel and Vue sides.
 - `app/Http/Controllers/Login/LoginController.php`
 - New features follow the same pattern: `app/Http/Controllers/<Feature>/<Feature>Controller.php`
 
+**Services** (`app/Services/<Feature>/`):
+- `app/Services/Login/LoginService.php`
+- New features follow the same pattern: `app/Services/<Feature>/<Feature>Service.php`
+
+**Models** (`app/Models/<Feature>/`):
+- `app/Models/Login/Login.php`
+- New features follow the same pattern: `app/Models/<Feature>/<Feature>.php`
+
 **Router**: register each new view in `resources/js/router/index.js`
 **Routes**: add Laravel API/form endpoints in `routes/web.php` before the catch-all
 
