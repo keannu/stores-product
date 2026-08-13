@@ -8,5 +8,5 @@ Route::post('/login', [LoginController::class, 'login'])->middleware(ValidateLog
 Route::post('/logout', [LoginController::class, 'logout']);
 
 Route::get('/{any}', function () {
-    return view('welcome');
+    return view('login');
 })->where('any', '.*');

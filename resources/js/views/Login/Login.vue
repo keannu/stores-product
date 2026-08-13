@@ -65,15 +65,6 @@
                         </div>
                     </div>
 
-                    <label class="flex items-center gap-3 sm:gap-2.5 cursor-pointer select-none py-1 sm:py-0">
-                        <input
-                            v-model="form.remember"
-                            type="checkbox"
-                            class="w-5 h-5 sm:w-4 sm:h-4 rounded border-neutral-300 text-blue-600 focus:ring-2 focus:ring-blue-500 accent-blue-600"
-                        />
-                        <span class="text-base sm:text-sm text-neutral-700">Keep me signed in on this device</span>
-                    </label>
-
                     <button
                         type="submit"
                         class="w-full bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white text-base sm:text-sm font-semibold py-4 sm:py-3 rounded-lg shadow-sm transition"
@@ -110,30 +101,22 @@
 <script setup>
 import { reactive, ref } from 'vue';
 import { useRouter } from 'vue-router';
+import axios from 'axios';
 
 const router = useRouter();
+
+axios.defaults.headers.common['X-CSRF-TOKEN'] = document.querySelector('meta[name="csrf-token"]')?.content;
 
 const showPassword = ref(false);
 
 const form = reactive({
     email: '',
     password: '',
-    remember: false,
 });
 
 async function handleLogin() {
-    const response = await fetch('/login', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content,
-        },
-        body: JSON.stringify(form),
-    });
-
-    if (response.ok) {
-        router.push('/');
-    }
+    await axios.post('/login', form);
+    router.push('/');
 }
 
 function handleRegister() {
