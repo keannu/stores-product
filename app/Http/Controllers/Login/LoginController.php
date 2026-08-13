@@ -13,17 +13,11 @@ class LoginController extends Controller
 
     public function login(Request $request): JsonResponse
     {
-        if (!$this->loginService->login($request->only(['username', 'password']), $request)) {
-            return response()->json(['message' => 'Invalid credentials'], 401);
-        }
-
-        return response()->json(['message' => 'Login successful']);
+        return $this->loginService->login($request);
     }
 
     public function logout(Request $request): JsonResponse
     {
-        $this->loginService->logout($request);
-
-        return response()->json(['message' => 'Logged out']);
+        return $this->loginService->logout($request);
     }
 }

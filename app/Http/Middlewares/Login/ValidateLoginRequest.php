@@ -12,7 +12,7 @@ class ValidateLoginRequest
     public function handle(Request $request, Closure $next): Response
     {
         $validator = Validator::make($request->all(), [
-            'username' => ['required', 'string'],
+            'email' => ['required', 'email'],
             'password' => ['required', 'string'],
         ]);
 
