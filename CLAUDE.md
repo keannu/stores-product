@@ -102,9 +102,6 @@ Router's history mode works on deep links. Every new server route MUST be declar
 **`users`** — belongs to a store (many users → one store)
 - `store_id` (nullable FK → `stores.id`, sets null on store delete)
 
-Both migrations are new and uncommitted. Neither the `Store` model nor the
-`User`→`Store` relationship exists yet — the schema is ahead of the code.
-
 ### Backend Layer Structure (MVC + Service Layer)
 
 **Middleware** (`app/Http/Middlewares/`)
@@ -134,9 +131,7 @@ Both migrations are new and uncommitted. Neither the `Store` model nor the
 
 ### Authentication
 
-Session-based via `Auth::attempt()`. Login matches on the **`name`** column, not `email` —
-the Vue form's `username` field maps to `name`. Session is regenerated on login and
-invalidated on logout.
+Session-based via `Auth::attempt()`. Login matches on the **`email`** column. Session is regenerated on login and invalidated on logout.
 
 ### File Organization
 
@@ -153,10 +148,3 @@ resources/js/views/Foo/Foo.vue
 
 Then register the Vue route in `resources/js/router/index.js` and the server route in
 `routes/web.php` **above the `/{any}` catch-all**.
-
-One existing file predates this convention and is not the pattern to follow:
-`resources/js/views/Home.vue` (should be `views/Home/Home.vue`).
-
-**Models are flat.** `memory/decisions.md` describes `app/Models/<Feature>/<Feature>.php`,
-but no nested model exists — the only model is `app/Models/User.php`. Keep models flat at
-`app/Models/` until that decision is deliberately revisited.
