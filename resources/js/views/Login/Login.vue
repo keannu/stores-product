@@ -23,13 +23,13 @@
                 <form @submit.prevent="handleLogin" class="mt-8 sm:mt-7 space-y-5">
 
                     <div>
-                        <label for="username" class="block text-sm font-medium text-neutral-800 mb-1.5">Username</label>
+                        <label for="email" class="block text-sm font-medium text-neutral-800 mb-1.5">Email</label>
                         <input
-                            id="username"
-                            v-model="form.username"
-                            type="text"
-                            placeholder="your_username"
-                            autocomplete="username"
+                            id="email"
+                            v-model="form.email"
+                            type="email"
+                            placeholder="Email"
+                            autocomplete="email"
                             class="w-full bg-white border border-neutral-300 rounded-lg px-4 sm:px-3.5 py-3.5 sm:py-2.5 text-base sm:text-sm text-neutral-900 placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
                         />
                     </div>
@@ -116,7 +116,7 @@ const router = useRouter();
 const showPassword = ref(false);
 
 const form = reactive({
-    username: '',
+    email: '',
     password: '',
     remember: false,
 });

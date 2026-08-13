@@ -6,9 +6,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 - **Backend**: Laravel 13 (PHP 8.3)
 - **Frontend**: Vue 3 (Composition API with `<script setup>`) + Tailwind CSS v4
+- **Routing (frontend)**: Vue Router 5 in HTML5 history mode (`createWebHistory()`)
 - **Build tool**: Vite with `laravel-vite-plugin`
-- **Database**: SQLite (default, configured in `.env`)
-- **Testing**: PHPUnit 12 (tests use in-memory SQLite)
+- **Database**: MySQL (`DB_CONNECTION=mysql` in `.env` — host `127.0.0.1:3306`, database `stores-product`)
+- **Testing**: PHPUnit 12 — tests run against in-memory SQLite (`phpunit.xml` overrides `DB_CONNECTION=sqlite`, `DB_DATABASE=:memory:`)
+
+> Dev runs on MySQL but tests run on SQLite. Migrations must work on both — watch for
+> `enum`, `->after()`, JSON columns, and multi-column `dropColumn`, which behave
+> differently or fail outright on SQLite.
 
 ## Self-Improving CLAUDE.md
 This file is persistent memory across sessions — if it's wrong, future sessions
@@ -21,7 +26,7 @@ will write wrong code. Keep it accurate:
 Before starting architectural work:
 1. Read `memory/decisions.md` — past architectural decisions. Follow them
    unless the user explicitly changes direction.
-4. Never re-decide something already decided — if it's documented, follow it.
+2. Never re-decide something already decided — if it's documented, follow it.
 
 ## Commands
 
@@ -66,9 +71,39 @@ This is an early-stage Laravel + Vue 3 SPA setup running via Laragon.
 
 - **Vue entry point**: `resources/js/app.js` mounts `App.vue` into `#app`
 - **Blade shell**: `resources/views/welcome.blade.php` — the single Blade view that loads Vite assets and provides the `#app` mount point
-- **Routes**: `routes/web.php` — currently only a root route returning the welcome view
+- **Vue router**: `resources/js/router/index.js` — registers `/` → `views/Home.vue` and `/login` → `views/Login/Login.vue`
 - **Vue alias**: `vite.config.js` aliases `vue` to `vue/dist/vue.esm-bundler.js` (full build including template compiler)
 - **Fonts**: Bunny Fonts (Instrument Sans) loaded via `laravel-vite-plugin/fonts`
+
+### Server Routes (`routes/web.php`)
+
+| Method | Path | Handler | Middleware |
+| --- | --- | --- | --- |
+| POST | `/login` | `Login\LoginController@login` | `Login\ValidateLoginRequest` |
+| POST | `/logout` | `Login\LoginController@logout` | — |
+| GET | `/{any}` | returns the `welcome` Blade shell | — |
+
+**CRITICAL — route ordering**: `/{any}` is a catch-all serving the SPA shell so Vue
+Router's history mode works on deep links. Every new server route MUST be declared
+**above** it, or the catch-all swallows the request and returns HTML instead.
+
+### Database Schema
+
+**`stores`** — core store entity
+- `id` (PK, auto-increment)
+- `store_name` (indexed)
+- `description` (nullable text)
+- `address` (indexed)
+- `owner_name`
+- `mobile_number`
+- `email` (indexed)
+- `created_at` / `updated_at`
+
+**`users`** — belongs to a store (many users → one store)
+- `store_id` (nullable FK → `stores.id`, sets null on store delete)
+
+Both migrations are new and uncommitted. Neither the `Store` model nor the
+`User`→`Store` relationship exists yet — the schema is ahead of the code.
 
 ### Backend Layer Structure (MVC + Service Layer)
 
@@ -86,9 +121,42 @@ This is an early-stage Laravel + Vue 3 SPA setup running via Laragon.
 - Owns all business and application logic for a given feature
 - Injects the Model layer via constructor injection
 - Must contain no HTTP concerns — no Request or Response objects
+- **Known deviation — do not copy**: `app/Services/Login/LoginService.php` accepts
+  `Illuminate\Http\Request` and calls `$request->session()`, violating the rule above.
+  New services must take plain arrays/scalars/DTOs. This one needs refactoring.
 
 **Model** (`app/Models/`)
 - Owns the database structure, relationships, and query scopes
 - Must contain no business logic — data definition and access only
+- Uses Laravel 13 **PHP attributes**, not the legacy protected-array style —
+  `#[Fillable([...])]` and `#[Hidden([...])]` above the class (see `app/Models/User.php`).
+  Do not write `protected $fillable = [...]`.
 
-New middlewares go in `app/Http/Middlewares/`, controllers in `app/Http/Controllers/`, services in `app/Services/`, models in `app/Models/`. Vue components should live in `resources/js/` (e.g., `resources/js/components/`).
+### Authentication
+
+Session-based via `Auth::attempt()`. Login matches on the **`name`** column, not `email` —
+the Vue form's `username` field maps to `name`. Session is regenerated on login and
+invalidated on logout.
+
+### File Organization
+
+Every feature gets its own named subdirectory on both sides (see `memory/decisions.md`).
+Adding feature `Foo` means creating and registering all of:
+
+```
+app/Http/Middlewares/Foo/ValidateFooRequest.php
+app/Http/Controllers/Foo/FooController.php
+app/Services/Foo/FooService.php
+app/Models/Foo.php                      # flat — see note below
+resources/js/views/Foo/Foo.vue
+```
+
+Then register the Vue route in `resources/js/router/index.js` and the server route in
+`routes/web.php` **above the `/{any}` catch-all**.
+
+One existing file predates this convention and is not the pattern to follow:
+`resources/js/views/Home.vue` (should be `views/Home/Home.vue`).
+
+**Models are flat.** `memory/decisions.md` describes `app/Models/<Feature>/<Feature>.php`,
+but no nested model exists — the only model is `app/Models/User.php`. Keep models flat at
+`app/Models/` until that decision is deliberately revisited.
