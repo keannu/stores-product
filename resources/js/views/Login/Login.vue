@@ -67,9 +67,10 @@
 
                     <button
                         type="submit"
-                        class="w-full bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white text-base sm:text-sm font-semibold py-4 sm:py-3 rounded-lg shadow-sm transition"
+                        :disabled="isLoading"
+                        class="w-full bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white text-base sm:text-sm font-semibold py-4 sm:py-3 rounded-lg shadow-sm transition disabled:opacity-60 disabled:cursor-not-allowed"
                     >
-                        Sign in
+                        {{ isLoading ? 'Signing in…' : 'Sign in' }}
                     </button>
                 </form>
 
@@ -102,12 +103,14 @@
 import { reactive, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import axios from 'axios';
+import Swal from 'sweetalert2';
 
 const router = useRouter();
 
 axios.defaults.headers.common['X-CSRF-TOKEN'] = document.querySelector('meta[name="csrf-token"]')?.content;
 
 const showPassword = ref(false);
+const isLoading = ref(false);
 
 const form = reactive({
     email: '',
@@ -115,8 +118,42 @@ const form = reactive({
 });
 
 async function handleLogin() {
-    await axios.post('/login', form);
-    router.push('/');
+    if (isLoading.value) return;
+
+    const emptyFields = [];
+    if (!form.email.trim()) emptyFields.push('Email');
+    if (!form.password) emptyFields.push('Password');
+
+    if (emptyFields.length) {
+        Swal.fire({
+            icon: 'warning',
+            title: 'Required Fields',
+            text: `${emptyFields.join(' and ')} ${emptyFields.length > 1 ? 'are' : 'is'} required.`,
+        });
+        return;
+    }
+
+    isLoading.value = true;
+    try {
+        const { data } = await axios.post('/login', form);
+        await Swal.fire({
+            icon: 'success',
+            title: 'Success',
+            text: data.message,
+            timer: 1500,
+            showConfirmButton: false,
+        });
+        router.push(data.redirect);
+    } catch (error) {
+        const message = error.response?.data?.message ?? 'An unexpected error occurred.';
+        Swal.fire({
+            icon: 'error',
+            title: 'Login Failed',
+            text: message,
+        });
+    } finally {
+        isLoading.value = false;
+    }
 }
 
 function handleRegister() {

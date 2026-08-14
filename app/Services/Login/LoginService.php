@@ -5,18 +5,64 @@ namespace App\Services\Login;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\RateLimiter;
 
 class LoginService
 {
+    private const MAX_ATTEMPTS = 5;
+    private const LOCKOUT_SECONDS = 3600; // 1 hour
+
+    private function throttleKey(Request $request): string
+    {
+        return 'login:' . strtolower($request->input('email'));
+    }
+
     public function login(Request $request): JsonResponse
     {
-        if (!Auth::attempt($request->only(['email', 'password']))) {
-            return response()->json(['message' => 'Invalid credentials'], 401);
+        $key = $this->throttleKey($request);
+
+        if (RateLimiter::tooManyAttempts($key, self::MAX_ATTEMPTS)) {
+            $seconds = RateLimiter::availableIn($key);
+            $minutes = ceil($seconds / 60);
+
+            return response()->json([
+                'message' => "Account locked due to too many failed attempts. Try again in {$minutes} minute(s).",
+            ], 429);
         }
 
+        if (!Auth::attempt($request->only(['email', 'password']))) {
+            RateLimiter::hit($key, self::LOCKOUT_SECONDS);
+
+            $remaining = self::MAX_ATTEMPTS - RateLimiter::attempts($key);
+
+            if ($remaining > 0) {
+                return response()->json([
+                    'message' => "Invalid credentials. {$remaining} attempt(s) remaining before account is locked.",
+                ], 401);
+            }
+
+            return response()->json([
+                'message' => 'Account locked due to too many failed attempts. Try again in 1 hour.',
+            ], 429);
+        }
+
+        RateLimiter::clear($key);
         $request->session()->regenerate();
 
-        return response()->json(['message' => 'Login successful']);
+        $user = Auth::user();
+
+        $redirect = '/';
+
+        if ($user->role === 'admin') {
+            $redirect = $user->store?->admin_redirect_link ?: '/';
+        } elseif ($user->role === 'customer') {
+            $redirect = $user->store?->customer_redirect_link ?: '/';
+        }
+
+        return response()->json([
+            'message'  => 'Login successful',
+            'redirect' => $redirect,
+        ]);
     }
 
     public function logout(Request $request): JsonResponse
