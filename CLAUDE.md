@@ -31,10 +31,12 @@ Before starting architectural work:
 
 ## MANDATORY: Create a Plan File Before Any Changes
 Before writing or modifying any code:
-1. Create a plan file at `plan/<feature-or-task-name>.md` describing what will be done and why.
-2. The plan must list every file that will be created or modified and what change will be made to each.
-3. Only begin executing after the plan file exists.
-4. Delete the plan file once the task is fully complete.
+1. Check all existing files in `plan/` — **do not create a new plan file unless every existing plan file has `Status: DONE`**.
+2. Create a plan file at `plan/<feature-or-task-name>.md` with a `Status` field at the top set to `IN PROGRESS`.
+3. The plan must list every file that will be created or modified and what change will be made to each.
+4. Only begin executing after the plan file exists.
+5. Keep the plan file after completion — do not delete it.
+6. Update the plan file's `Status` to `DONE` once the task is fully complete.
 
 ## Commands
 

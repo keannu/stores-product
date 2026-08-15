@@ -143,7 +143,7 @@ async function handleLogin() {
             timer: 1500,
             showConfirmButton: false,
         });
-        router.push(data.redirect);
+        window.location.href = data.redirect;
     } catch (error) {
         const message = error.response?.data?.message ?? 'An unexpected error occurred.';
         Swal.fire({
