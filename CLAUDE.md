@@ -21,12 +21,20 @@ will write wrong code. Keep it accurate:
 - Delete outdated sections instead of leaving them stale
 - Add new patterns as they're established
 - When a decision changes, update `memory/decisions.md`, not just this file
+- **After completing any feature or significant change**, update `memory/decisions.md` with what was decided and why — not just when something changes
 
 ## MANDATORY: Read Context Files Before Working
 Before starting architectural work:
 1. Read `memory/decisions.md` — past architectural decisions. Follow them
    unless the user explicitly changes direction.
 2. Never re-decide something already decided — if it's documented, follow it.
+
+## MANDATORY: Create a Plan File Before Any Changes
+Before writing or modifying any code:
+1. Create a plan file at `plan/<feature-or-task-name>.md` describing what will be done and why.
+2. The plan must list every file that will be created or modified and what change will be made to each.
+3. Only begin executing after the plan file exists.
+4. Delete the plan file once the task is fully complete.
 
 ## Commands
 
@@ -74,6 +82,8 @@ This is an early-stage Laravel + Vue 3 SPA setup running via Laragon.
 - **Vue router**: `resources/js/router/index.js` — registers `/` → `views/Home.vue` and `/login` → `views/Login/Login.vue`
 - **Vue alias**: `vite.config.js` aliases `vue` to `vue/dist/vue.esm-bundler.js` (full build including template compiler)
 - **Fonts**: Bunny Fonts (Instrument Sans) loaded via `laravel-vite-plugin/fonts`
+- **HTTP client**: `axios` — CSRF token set globally from `<meta name="csrf-token">` in `Login.vue` (and should be set once globally in `app.js` for future features)
+- **Alerts/modals**: `sweetalert2` (SweetAlert2) — used in `Login.vue` for success, error, and validation feedback
 
 ### Server Routes (`routes/web.php`)
 
@@ -101,6 +111,7 @@ Router's history mode works on deep links. Every new server route MUST be declar
 
 **`users`** — belongs to a store (many users → one store)
 - `store_id` (nullable FK → `stores.id`, sets null on store delete)
+- `role` — string, used for post-login redirect (`'admin'` | `'customer'`)
 
 ### Backend Layer Structure (MVC + Service Layer)
 
@@ -132,6 +143,22 @@ Router's history mode works on deep links. Every new server route MUST be declar
 ### Authentication
 
 Session-based via `Auth::attempt()`. Login matches on the **`email`** column. Session is regenerated on login and invalidated on logout.
+
+**Login flow** (`LoginService::login`):
+1. Check rate limiter — if exceeded, return 429 immediately.
+2. Check email existence via `User::where('email', ...)->exists()` — if not found, return 404 (`"No account found with that email address."`).
+3. Attempt `Auth::attempt()` — if it fails, hit the rate limiter and return 401 with remaining attempts.
+4. On the 5th failure the rate limiter locks the account; return 429 (`"Account locked..."`).
+5. On success, clear the rate limiter, regenerate the session, and return 200 with a `redirect` URL.
+
+**Rate limiting**: 5 attempts max, 1-hour lockout (`RateLimiter`, key `login:<email>`).
+
+**Role-based redirect** (post-login):
+- `admin` → `user->store->admin_redirect_link` (falls back to `/`)
+- `customer` → `user->store->customer_redirect_link` (falls back to `/`)
+- Any other role → `/`
+
+**Validation** (`ValidateLoginRequest` middleware): `email` required + valid email format, `password` required string. Returns 422 on failure.
 
 ### File Organization
 

@@ -2,6 +2,7 @@
 
 namespace App\Services\Login;
 
+use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -28,6 +29,12 @@ class LoginService
             return response()->json([
                 'message' => "Account locked due to too many failed attempts. Try again in {$minutes} minute(s).",
             ], 429);
+        }
+
+        if (!User::where('email', $request->input('email'))->exists()) {
+            return response()->json([
+                'message' => 'No account found with that email address.',
+            ], 404);
         }
 
         if (!Auth::attempt($request->only(['email', 'password']))) {
