@@ -31,8 +31,8 @@ Before starting architectural work:
 
 ## MANDATORY: Create a Plan File Before Any Changes
 Before writing or modifying any code:
-1. Check all existing files in `plan/` — **do not create a new plan file unless every existing plan file has `Status: DONE`**.
-2. Create a plan file at `plan/<feature-or-task-name>.md` with a `Status` field at the top set to `IN PROGRESS`.
+1. Check all existing files in `docs/plans/` — **do not create a new plan file unless every existing plan file has `Status: DONE`**.
+2. Create a plan file at `docs/plans/<feature-or-task-name>.md` with a `Status` field at the top set to `IN PROGRESS`.
 3. The plan must list every file that will be created or modified and what change will be made to each.
 4. Only begin executing after the plan file exists.
 5. Keep the plan file after completion — do not delete it.
@@ -87,33 +87,33 @@ This is an early-stage Laravel + Vue 3 SPA setup running via Laragon.
 - **HTTP client**: `axios` — CSRF token set globally from `<meta name="csrf-token">` in `Login.vue` (and should be set once globally in `app.js` for future features)
 - **Alerts/modals**: `sweetalert2` (SweetAlert2) — used in `Login.vue` for success, error, and validation feedback
 
-### Server Routes (`routes/web.php`)
+### Server Routes
+
+Routes are split across two files:
+
+#### `routes/web.php` — session-based auth + Blade view shells
 
 | Method | Path | Handler | Middleware |
 | --- | --- | --- | --- |
 | POST | `/login` | `Login\LoginController@login` | `Login\ValidateLoginRequest` |
 | POST | `/logout` | `Login\LoginController@logout` | — |
-| GET | `/{any}` | returns the `welcome` Blade shell | — |
+| GET | `/dashboard/{any?}` | returns `dashboard` Blade shell | `RedirectIfNotAuthenticated` |
+| GET | `/{any}` | returns `login` Blade shell | — |
 
-**CRITICAL — route ordering**: `/{any}` is a catch-all serving the SPA shell so Vue
-Router's history mode works on deep links. Every new server route MUST be declared
-**above** it, or the catch-all swallows the request and returns HTML instead.
+**CRITICAL — route ordering**: `/{any}` is a catch-all. Every new web route MUST be declared **above** it or the catch-all swallows the request.
 
-### Database Schema
+#### `routes/api.php` — REST data routes (prefixed `/api` automatically by Laravel)
 
-**`stores`** — core store entity
-- `id` (PK, auto-increment)
-- `store_name` (indexed)
-- `description` (nullable text)
-- `address` (indexed)
-- `owner_name`
-- `mobile_number`
-- `email` (indexed)
-- `created_at` / `updated_at`
+| Method | Path (in file) | Full URL | Handler | Middleware |
+| --- | --- | --- | --- | --- |
+| GET | `/dashboard/stores` | `/api/dashboard/stores` | `Users\UserController@stores` | `RedirectIfNotAuthenticated` |
+| GET | `/dashboard/users` | `/api/dashboard/users` | `Users\UserController@index` | `RedirectIfNotAuthenticated` |
+| POST | `/dashboard/users` | `/api/dashboard/users` | `Users\UserController@store` | `RedirectIfNotAuthenticated`, `ValidateUserRequest` |
+| PUT | `/dashboard/users/{id}` | `/api/dashboard/users/{id}` | `Users\UserController@update` | `RedirectIfNotAuthenticated`, `ValidateUserRequest` |
+| DELETE | `/dashboard/users/{id}` | `/api/dashboard/users/{id}` | `Users\UserController@destroy` | `RedirectIfNotAuthenticated` |
 
-**`users`** — belongs to a store (many users → one store)
-- `store_id` (nullable FK → `stores.id`, sets null on store delete)
-- `role` — string, used for post-login redirect (`'admin'` | `'customer'`)
+**Convention**: All routes that retrieve, create, update, or delete data go in `routes/api.php` **without** the `/api` prefix (Laravel adds it automatically via `withRouting(api: ...)`). Sessions are available on api routes because `StartSession` is prepended to the api middleware group in `bootstrap/app.php`.
+
 
 ### Backend Layer Structure (MVC + Service Layer)
 
@@ -175,5 +175,6 @@ app/Models/Foo.php                      # flat — see note below
 resources/js/views/Foo/Foo.vue
 ```
 
-Then register the Vue route in `resources/js/router/index.js` and the server route in
-`routes/web.php` **above the `/{any}` catch-all**.
+Then register the Vue route in `resources/js/router/index.js` and the server route in the appropriate file:
+- Data endpoints (GET/POST/PUT/DELETE on a resource) → `routes/api.php` (no `/api` prefix needed)
+- Session auth or Blade view routes → `routes/web.php` **above the `/{any}` catch-all**
