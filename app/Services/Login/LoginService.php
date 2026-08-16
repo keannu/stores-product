@@ -58,10 +58,10 @@ class LoginService
 
         $user = Auth::user();
 
-        $redirect = '/';
+        $redirect = '/dashboard';
 
         if ($user->role === 'admin') {
-            $redirect = $user->store?->admin_redirect_link ?: '/';
+            $redirect = $user->store?->admin_redirect_link ?: '/dashboard';
         } elseif ($user->role === 'customer') {
             $redirect = $user->store?->customer_redirect_link ?: '/';
         }

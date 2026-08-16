@@ -12,7 +12,7 @@ class RedirectIfNotAuthenticated
     public function handle(Request $request, Closure $next): Response
     {
         if (!Auth::check()) {
-            return redirect('/');
+            return redirect('/login');
         }
 
         return $next($request);
