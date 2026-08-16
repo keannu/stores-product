@@ -2,7 +2,7 @@
 
 > **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
 
-**Status: DONE**
+**Status: IN PROGRESS**
 
 **Goal:** Build a full CRUD management page for users inside the dashboard, following the existing MVC + Service architecture.
 

@@ -2,20 +2,26 @@
 
 use App\Http\Controllers\Users\UserController;
 use App\Http\Middlewares\Dashboard\RedirectIfNotAuthenticated;
+use App\Http\Middlewares\Users\ValidatePasswordChangeRequest;
 use App\Http\Middlewares\Users\ValidateUserRequest;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/dashboard/stores', [UserController::class, 'stores'])
-    ->middleware(RedirectIfNotAuthenticated::class);
+Route::middleware(RedirectIfNotAuthenticated::class)
+    ->group(function () {
 
-Route::get('/dashboard/users', [UserController::class, 'index'])
-    ->middleware(RedirectIfNotAuthenticated::class);
+        Route::get('/dashboard/stores', [UserController::class, 'stores']);
 
-Route::post('/dashboard/users', [UserController::class, 'store'])
-    ->middleware([RedirectIfNotAuthenticated::class, ValidateUserRequest::class]);
+        Route::get('/dashboard/users', [UserController::class, 'index']);
 
-Route::put('/dashboard/users/{id}', [UserController::class, 'update'])
-    ->middleware([RedirectIfNotAuthenticated::class, ValidateUserRequest::class]);
+        Route::post('/dashboard/users', [UserController::class, 'store'])
+            ->middleware(ValidateUserRequest::class);
 
-Route::delete('/dashboard/users/{id}', [UserController::class, 'destroy'])
-    ->middleware(RedirectIfNotAuthenticated::class);
+        Route::put('/dashboard/users/{id}', [UserController::class, 'update'])
+            ->middleware(ValidateUserRequest::class);
+
+        Route::put('/dashboard/users/{id}/password', [UserController::class, 'changePassword'])
+            ->middleware(ValidatePasswordChangeRequest::class);
+
+        Route::delete('/dashboard/users/{id}', [UserController::class, 'destroy']);
+
+    });

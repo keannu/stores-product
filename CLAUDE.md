@@ -110,6 +110,7 @@ Routes are split across two files:
 | GET | `/dashboard/users` | `/api/dashboard/users` | `Users\UserController@index` | `RedirectIfNotAuthenticated` |
 | POST | `/dashboard/users` | `/api/dashboard/users` | `Users\UserController@store` | `RedirectIfNotAuthenticated`, `ValidateUserRequest` |
 | PUT | `/dashboard/users/{id}` | `/api/dashboard/users/{id}` | `Users\UserController@update` | `RedirectIfNotAuthenticated`, `ValidateUserRequest` |
+| PUT | `/dashboard/users/{id}/password` | `/api/dashboard/users/{id}/password` | `Users\UserController@changePassword` | `RedirectIfNotAuthenticated`, `ValidatePasswordChangeRequest` |
 | DELETE | `/dashboard/users/{id}` | `/api/dashboard/users/{id}` | `Users\UserController@destroy` | `RedirectIfNotAuthenticated` |
 
 **Convention**: All routes that retrieve, create, update, or delete data go in `routes/api.php` **without** the `/api` prefix (Laravel adds it automatically via `withRouting(api: ...)`). Sessions are available on api routes because `StartSession` is prepended to the api middleware group in `bootstrap/app.php`.

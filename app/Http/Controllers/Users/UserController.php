@@ -16,6 +16,8 @@ class UserController extends Controller
         return $this->userService->index(
             $request->string('search')->toString(),
             (int) $request->input('page', 1),
+            $request->filled('store_id') ? (int) $request->input('store_id') : null,
+            $request->string('role')->toString(),
         );
     }
 
@@ -32,6 +34,11 @@ class UserController extends Controller
     public function update(Request $request, int $id): JsonResponse
     {
         return $this->userService->update($id, $request->all());
+    }
+
+    public function changePassword(Request $request, int $id): JsonResponse
+    {
+        return $this->userService->changePassword($id, $request->input('password'));
     }
 
     public function destroy(int $id): JsonResponse

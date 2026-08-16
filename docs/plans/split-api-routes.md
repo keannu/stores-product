@@ -1,6 +1,6 @@
 # Plan: Split API Routes into routes/api.php
 
-**Status: IN PROGRESS**
+**Status: DONE**
 
 ## Goal
 Move all REST API routes (data CRUD) out of `routes/web.php` into a new `routes/api.php`.

@@ -8,7 +8,7 @@ use Illuminate\Http\JsonResponse;
 
 class UserService
 {
-    public function index(string $search = '', int $page = 1): JsonResponse
+    public function index(string $search = '', int $page = 1, ?int $storeId = null, string $role = ''): JsonResponse
     {
         $query = User::query();
 
@@ -17,6 +17,14 @@ class UserService
                 $q->where('name', 'like', "%{$search}%")
                   ->orWhere('email', 'like', "%{$search}%");
             });
+        }
+
+        if ($storeId !== null) {
+            $query->where('store_id', $storeId);
+        }
+
+        if ($role !== '') {
+            $query->where('role', $role);
         }
 
         $paginated = $query->paginate(15, ['*'], 'page', $page);
@@ -68,6 +76,14 @@ class UserService
         $user->update($payload);
 
         return response()->json($user->fresh());
+    }
+
+    public function changePassword(int $id, string $password): JsonResponse
+    {
+        $user = User::findOrFail($id);
+        $user->update(['password' => $password]);
+
+        return response()->json(['message' => 'Password updated']);
     }
 
     public function destroy(int $id): JsonResponse
