@@ -5,12 +5,26 @@ namespace App\Services\Users;
 use App\Models\Store;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Str;
 
 class UserService
 {
-    public function index(string $search = '', int $page = 1, ?int $storeId = null, string $role = ''): JsonResponse
+    public function index(string $search = '', int $page = 1, ?int $storeId = null, string $role = '', string $authRole = '', string $status = 'active', ?int $authStoreId = null): JsonResponse
     {
         $query = User::query();
+
+        if ($status === 'inactive') {
+            $query->onlyTrashed();
+        } elseif ($status === 'all') {
+            $query->withTrashed();
+        }
+
+        if ($authRole !== 'super_admin') {
+            $query->where('role', '!=', 'super_admin');
+            if ($authStoreId !== null) {
+                $query->where('store_id', $authStoreId);
+            }
+        }
 
         if ($search !== '') {
             $query->where(function ($q) use ($search) {
@@ -50,7 +64,7 @@ class UserService
         $user = User::create([
             'name'     => $data['name'],
             'email'    => $data['email'],
-            'password' => $data['password'],
+            'password' => $data['password'] ?? Str::random(16),
             'role'     => $data['role'],
             'store_id' => $data['store_id'] ?? null,
         ]);

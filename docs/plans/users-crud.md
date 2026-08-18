@@ -2,7 +2,7 @@
 
 > **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
 
-**Status: IN PROGRESS**
+**Status: DONE**
 
 **Goal:** Build a full CRUD management page for users inside the dashboard, following the existing MVC + Service architecture.
 
@@ -1558,3 +1558,55 @@ Expected: all tests pass.
 git add resources/js/router/index.js resources/js/views/Users/Users.vue
 git commit -m "add Users CRUD page with search, pagination, and modal create/edit/delete"
 ```
+
+---
+
+## Task 15: Cache Auth User Role in Session to Avoid DB Query
+
+**Status: DONE**
+
+### Changes
+
+#### 1. `app/Services/Login/LoginService.php`
+Store `auth_user_id` and `auth_user_role` in the session after login (after session regeneration).
+
+#### 2. `app/Http/Controllers/Users/UserController.php`
+Change `authUser()` to read from the session instead of calling `Auth::user()`.
+
+---
+
+## Task 16: Users Modal Messages + Optional Password
+
+**Status: DONE**
+
+### Changes
+
+#### 1. `resources/js/views/Users/Users.vue`
+- Add a success toast/banner at the top of the Users page (auto-dismisses after ~3s)
+- Show success message after create/update instead of silently closing
+- Show non-422 error messages as a banner inside the modal (replace `alert()`)
+- Keep existing per-field 422 error display as-is
+
+#### 2. `app/Http/Middlewares/Users/ValidateUserRequest.php`
+- Make password `nullable` for both create and update (remove `required` on create)
+
+#### 3. `app/Services/Users/UserService.php`
+- Generate a random temporary password on create if none provided (`Str::random(16)`)
+
+---
+
+## Task 17: Restrict Stores Filter & Super Admin Display to Super Admins
+
+**Status: DONE**
+
+### Changes
+
+#### 1. `resources/js/views/Users/Users.vue`
+- Hide the Stores filter dropdown when `isSuperAdmin` is false
+- Adjust `hasActiveFilters` to ignore `filterStoreId` for non-super-admins
+
+#### 2. `app/Services/Users/UserService.php`
+- Accept the authenticated user's role and exclude `super_admin` users from query results when the caller is not a super_admin
+
+#### 3. `app/Http/Controllers/Users/UserController.php`
+- Pass the auth user's role from the session to the service's `index` method

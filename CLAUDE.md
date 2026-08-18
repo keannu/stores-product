@@ -29,14 +29,22 @@ Before starting architectural work:
    unless the user explicitly changes direction.
 2. Never re-decide something already decided — if it's documented, follow it.
 
-## MANDATORY: Create a Plan File Before Any Changes
-Before writing or modifying any code:
-1. Check all existing files in `docs/plans/` — **do not create a new plan file unless every existing plan file has `Status: DONE`**.
-2. Create a plan file at `docs/plans/<feature-or-task-name>.md` with a `Status` field at the top set to `IN PROGRESS`.
-3. The plan must list every file that will be created or modified and what change will be made to each.
-4. Only begin executing after the plan file exists.
-5. Keep the plan file after completion — do not delete it.
-6. Update the plan file's `Status` to `DONE` once the task is fully complete.
+## Plan Files (`docs/plans/`)
+
+**When to create a new plan file:**
+- Only for large tasks that need planning before implementation (e.g., building a full CRUD page, adding a new feature area)
+- When the user explicitly asks for a plan file
+
+**When NOT to create a new plan file:**
+- If the task is related to a page/feature that already has an existing plan file — append to that file instead (as a new numbered task)
+- For small changes, bug fixes, or incremental improvements to an existing feature
+
+**Plan file rules:**
+1. Check `docs/plans/` for an existing related plan file before creating a new one.
+2. New plan files go at `docs/plans/<feature-or-task-name>.md` with `Status: IN PROGRESS`.
+3. The plan must list every file that will be created or modified and what change will be made.
+4. Keep plan files after completion — do not delete them.
+5. Set `Status` to `DONE` only when the user says the current task/feature is complete.
 
 ## Commands
 
@@ -106,6 +114,7 @@ Routes are split across two files:
 
 | Method | Path (in file) | Full URL | Handler | Middleware |
 | --- | --- | --- | --- | --- |
+| GET | `/dashboard/auth-user` | `/api/dashboard/auth-user` | `Users\UserController@authUser` | `RedirectIfNotAuthenticated` |
 | GET | `/dashboard/stores` | `/api/dashboard/stores` | `Users\UserController@stores` | `RedirectIfNotAuthenticated` |
 | GET | `/dashboard/users` | `/api/dashboard/users` | `Users\UserController@index` | `RedirectIfNotAuthenticated` |
 | POST | `/dashboard/users` | `/api/dashboard/users` | `Users\UserController@store` | `RedirectIfNotAuthenticated`, `ValidateUserRequest` |

@@ -11,6 +11,15 @@ class UserController extends Controller
 {
     public function __construct(private UserService $userService) {}
 
+    public function authUser(Request $request): JsonResponse
+    {
+        return response()->json([
+            'id'       => $request->session()->get('auth_user_id'),
+            'role'     => $request->session()->get('auth_user_role'),
+            'store_id' => $request->session()->get('auth_user_store_id'),
+        ]);
+    }
+
     public function index(Request $request): JsonResponse
     {
         return $this->userService->index(
@@ -18,6 +27,9 @@ class UserController extends Controller
             (int) $request->input('page', 1),
             $request->filled('store_id') ? (int) $request->input('store_id') : null,
             $request->string('role')->toString(),
+            $request->session()->get('auth_user_role', ''),
+            $request->string('status', 'active')->toString(),
+            $request->session()->get('auth_user_store_id'),
         );
     }
 

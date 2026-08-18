@@ -58,6 +58,10 @@ class LoginService
 
         $user = Auth::user();
 
+        $request->session()->put('auth_user_id', $user->id);
+        $request->session()->put('auth_user_role', $user->role);
+        $request->session()->put('auth_user_store_id', $user->store_id);
+
         $redirect = '/dashboard';
 
         if ($user->role === 'admin') {

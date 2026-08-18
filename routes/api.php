@@ -9,6 +9,8 @@ use Illuminate\Support\Facades\Route;
 Route::middleware(RedirectIfNotAuthenticated::class)
     ->group(function () {
 
+        Route::get('/dashboard/auth-user', [UserController::class, 'authUser']);
+
         Route::get('/dashboard/stores', [UserController::class, 'stores']);
 
         Route::get('/dashboard/users', [UserController::class, 'index']);
