@@ -14,11 +14,29 @@
 </template>
 
 <script setup>
+import { ref, provide, onMounted } from 'vue';
 import axios from 'axios';
 import TopNavigationBar from './TopNavigationBar.vue';
 import LeftNavigationBar from './LeftNavigationBar.vue';
 
 axios.defaults.headers.common['X-CSRF-TOKEN'] = document.querySelector('meta[name="csrf-token"]')?.content;
+
+const authUser = ref(null);
+
+async function fetchAuthUser() {
+    try {
+        const { data } = await axios.get('/api/dashboard/auth-user');
+        authUser.value = data;
+    } catch {
+        // non-critical
+    }
+}
+
+onMounted(() => {
+    fetchAuthUser();
+});
+
+provide('authUser', authUser);
 
 async function handleLogout() {
     await axios.post('/logout');

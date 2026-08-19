@@ -6,17 +6,20 @@ use App\Http\Controllers\Controller;
 use App\Services\Users\UserService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class UserController extends Controller
 {
     public function __construct(private UserService $userService) {}
 
-    public function authUser(Request $request): JsonResponse
+    public function authUser(): JsonResponse
     {
+        $user = Auth::user();
+
         return response()->json([
-            'id'       => $request->session()->get('auth_user_id'),
-            'role'     => $request->session()->get('auth_user_role'),
-            'store_id' => $request->session()->get('auth_user_store_id'),
+            'id'       => $user->id,
+            'role'     => $user->role,
+            'store_id' => $user->store_id,
         ]);
     }
 
