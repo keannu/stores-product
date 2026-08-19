@@ -1,6 +1,8 @@
 <template>
     <!-- Hamburger button teleported into header -->
-    <Teleport to="#sidebar-toggle-anchor">
+    <!-- `defer` waits for the layout tree to be in the document before resolving
+         the target — the anchor lives in TopNavigationBar, a sibling component -->
+    <Teleport to="#sidebar-toggle-anchor" defer>
         <button
             @click="toggleSidebar"
             class="md:hidden flex items-center justify-center w-9 h-9 rounded-lg text-neutral-500 hover:bg-neutral-100 hover:text-neutral-800 transition"
@@ -51,26 +53,14 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, inject } from 'vue';
 import { useRoute } from 'vue-router';
-import axios from 'axios';
 
 const route = useRoute();
 const isOpen = ref(false);
-const authUser = ref(null);
 
-async function fetchAuthUser() {
-    try {
-        const { data } = await axios.get('/api/dashboard/auth-user');
-        authUser.value = data;
-    } catch {
-        // non-critical
-    }
-}
-
-onMounted(() => {
-    fetchAuthUser();
-});
+// provided by DashboardLayout — no need to fetch /api/dashboard/auth-user again
+const authUser = inject('authUser', ref(null));
 
 function toggleSidebar() {
     isOpen.value = !isOpen.value;

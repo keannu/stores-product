@@ -7,7 +7,7 @@
 
         <div class="flex pt-16 min-h-screen">
             <main class="flex-1 ml-0 md:ml-56 px-6 py-8">
-                <slot />
+                <RouterView />
             </main>
         </div>
     </div>

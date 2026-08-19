@@ -59,12 +59,24 @@ class StoreServiceTest extends TestCase
         $this->assertSame('alpha@example.com', $data['data'][0]['email']);
     }
 
-    public function test_index_filters_by_address(): void
+    public function test_index_filters_owner_by_name(): void
+    {
+        Store::factory()->create(['owner_name' => 'John Doe']);
+        Store::factory()->create(['owner_name' => 'Jane Smith']);
+
+        $response = $this->service->index('', 'John');
+        $data     = $response->getData(true);
+
+        $this->assertCount(1, $data['data']);
+        $this->assertSame('John Doe', $data['data'][0]['owner_name']);
+    }
+
+    public function test_index_filters_owner_by_address(): void
     {
         Store::factory()->create(['address' => '123 Main Street']);
         Store::factory()->create(['address' => '456 Oak Avenue']);
 
-        $response = $this->service->index('Main');
+        $response = $this->service->index('', 'Main');
         $data     = $response->getData(true);
 
         $this->assertCount(1, $data['data']);
@@ -88,7 +100,7 @@ class StoreServiceTest extends TestCase
         $deleted = Store::factory()->create();
         $deleted->delete();
 
-        $response = $this->service->index('', 1, 'inactive');
+        $response = $this->service->index('', '', 1, 'inactive');
         $data     = $response->getData(true);
 
         $this->assertCount(1, $data['data']);
@@ -101,7 +113,7 @@ class StoreServiceTest extends TestCase
         $deleted = Store::factory()->create();
         $deleted->delete();
 
-        $response = $this->service->index('', 1, 'all');
+        $response = $this->service->index('', '', 1, 'all');
         $data     = $response->getData(true);
 
         $this->assertCount(2, $data['data']);
@@ -123,7 +135,7 @@ class StoreServiceTest extends TestCase
     {
         Store::factory()->count(20)->create();
 
-        $response = $this->service->index('', 2);
+        $response = $this->service->index('', '', 2);
         $data     = $response->getData(true);
 
         $this->assertCount(5, $data['data']);
@@ -240,6 +252,49 @@ class StoreServiceTest extends TestCase
         $data = $response->getData(true);
         $this->assertSame(200, $response->getStatusCode());
         $this->assertSame('New Name', $data['store_name']);
+    }
+
+    public function test_update_defaults_redirect_links_to_slash(): void
+    {
+        $store = Store::factory()->create([
+            'admin_redirect_link'    => '/admin',
+            'customer_redirect_link' => '/shop',
+        ]);
+
+        $this->service->update($store->id, [
+            'store_name'    => $store->store_name,
+            'address'       => $store->address,
+            'owner_name'    => $store->owner_name,
+            'mobile_number' => $store->mobile_number,
+            'email'         => $store->email,
+        ]);
+
+        $this->assertDatabaseHas('stores', [
+            'id'                     => $store->id,
+            'admin_redirect_link'    => '/',
+            'customer_redirect_link' => '/',
+        ]);
+    }
+
+    public function test_update_accepts_custom_redirect_links(): void
+    {
+        $store = Store::factory()->create();
+
+        $this->service->update($store->id, [
+            'store_name'             => $store->store_name,
+            'address'                => $store->address,
+            'owner_name'             => $store->owner_name,
+            'mobile_number'          => $store->mobile_number,
+            'email'                  => $store->email,
+            'admin_redirect_link'    => '/admin',
+            'customer_redirect_link' => '/shop',
+        ]);
+
+        $this->assertDatabaseHas('stores', [
+            'id'                     => $store->id,
+            'admin_redirect_link'    => '/admin',
+            'customer_redirect_link' => '/shop',
+        ]);
     }
 
     public function test_update_throws_for_nonexistent_store(): void

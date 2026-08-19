@@ -94,6 +94,8 @@ This is an early-stage Laravel + Vue 3 SPA setup running via Laragon.
 - **Fonts**: Bunny Fonts (Instrument Sans) loaded via `laravel-vite-plugin/fonts`
 - **HTTP client**: `axios` — CSRF token set globally from `<meta name="csrf-token">` in `Login.vue` (and should be set once globally in `app.js` for future features)
 - **Alerts/modals**: `sweetalert2` (SweetAlert2) — used in `Login.vue` for success, error, and validation feedback
+- **Authenticated user**: `DashboardLayout.vue` is a **route-level layout** (via nested routes in the router) that fetches `/api/dashboard/auth-user` once on mount and `provide('authUser', authUser)`. All dashboard child route components and shared components (e.g. `LeftNavigationBar`) must use `inject('authUser', ref(null))` — **never** duplicate the fetch. The CSRF header is also set in `DashboardLayout`, so page components don't need to set it again.
+- **Dashboard pages must NOT wrap in `<DashboardLayout>`** — the layout is applied automatically by the router via nested routes. Page components just render their own content directly.
 
 ### Server Routes
 

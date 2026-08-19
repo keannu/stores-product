@@ -7,7 +7,7 @@ use Illuminate\Http\JsonResponse;
 
 class StoreService
 {
-    public function index(string $search = '', int $page = 1, string $status = 'active'): JsonResponse
+    public function index(string $search = '', string $searchOwner = '', int $page = 1, string $status = 'active'): JsonResponse
     {
         $query = Store::query();
 
@@ -20,8 +20,14 @@ class StoreService
         if ($search !== '') {
             $query->where(function ($q) use ($search) {
                 $q->where('store_name', 'like', "%{$search}%")
-                  ->orWhere('email', 'like', "%{$search}%")
-                  ->orWhere('address', 'like', "%{$search}%");
+                  ->orWhere('email', 'like', "%{$search}%");
+            });
+        }
+
+        if ($searchOwner !== '') {
+            $query->where(function ($q) use ($searchOwner) {
+                $q->where('owner_name', 'like', "%{$searchOwner}%")
+                  ->orWhere('address', 'like', "%{$searchOwner}%");
             });
         }
 

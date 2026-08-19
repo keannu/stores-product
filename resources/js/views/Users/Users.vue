@@ -1,6 +1,4 @@
 <template>
-    <DashboardLayout>
-
         <!-- Success toast -->
         <Transition
             enter-active-class="transition duration-300 ease-out"
@@ -42,24 +40,24 @@
         <div class="bg-white border border-neutral-200 rounded-2xl shadow-sm p-4 mb-5">
             <div class="flex flex-col sm:flex-row sm:items-end gap-3">
                 <div class="relative w-full sm:w-64">
-                    <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400 pointer-events-none" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"/>
-                    </svg>
-                    <input
-                        v-model="search"
-                        type="text"
-                        placeholder="Search by name or email…"
-                        class="w-full pl-10 pr-9 py-2.5 text-base bg-neutral-50 border border-neutral-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 focus:bg-white placeholder-neutral-400 transition"
-                    />
-                    <button
-                        v-if="search"
-                        @click="search = ''; applyFilters()"
-                        class="absolute right-3 top-1/2 -translate-y-1/2 p-0.5 rounded-full text-neutral-400 hover:text-neutral-600 hover:bg-neutral-100 transition-colors"
-                    >
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                        <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400 pointer-events-none" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"/>
                         </svg>
-                    </button>
+                        <input
+                            v-model="search"
+                            type="text"
+                            placeholder="Search by name or email…"
+                            class="w-full pl-10 pr-9 py-2.5 text-base bg-neutral-50 border border-neutral-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 focus:bg-white placeholder-neutral-400 transition"
+                        />
+                        <button
+                            v-if="search"
+                            @click="search = ''; applyFilters()"
+                            class="absolute right-3 top-1/2 -translate-y-1/2 p-0.5 rounded-full text-neutral-400 hover:text-neutral-600 hover:bg-neutral-100 transition-colors"
+                        >
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                            </svg>
+                        </button>
                 </div>
                 <div v-if="isSuperAdmin" class="relative w-full sm:w-48">
                     <select
@@ -601,19 +599,15 @@
             </Transition>
         </Teleport>
 
-    </DashboardLayout>
 </template>
 
 <script setup>
-import { ref, reactive, computed, watch, onMounted } from 'vue';
+import { ref, reactive, computed, inject, watch, onMounted } from 'vue';
 import axios from 'axios';
-import DashboardLayout from '../Common/DashboardLayout.vue';
 import DataTable from '../Common/DataTable.vue';
 
-axios.defaults.headers.common['X-CSRF-TOKEN'] = document.querySelector('meta[name="csrf-token"]')?.content;
-
 // --- State ---
-const authUser    = ref(null);
+const authUser = inject('authUser', ref(null));
 const users       = ref([]);
 const stores      = ref([]);
 const loading     = ref(false);
@@ -693,17 +687,7 @@ async function fetchStores() {
     }
 }
 
-async function fetchAuthUser() {
-    try {
-        const { data } = await axios.get('/api/dashboard/auth-user');
-        authUser.value = data;
-    } catch {
-        // non-critical
-    }
-}
-
 onMounted(() => {
-    fetchAuthUser();
     fetchUsers();
     fetchStores();
 });

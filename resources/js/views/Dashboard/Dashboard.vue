@@ -1,6 +1,4 @@
 <template>
-    <DashboardLayout>
-
         <!-- Welcome -->
         <div class="mb-8">
             <h1 class="text-2xl font-bold text-neutral-900 tracking-tight">Dashboard</h1>
@@ -86,9 +84,4 @@
             </div>
 
         </div>
-    </DashboardLayout>
 </template>
-
-<script setup>
-import DashboardLayout from '../Common/DashboardLayout.vue';
-</script>

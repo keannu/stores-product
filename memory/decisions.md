@@ -37,3 +37,18 @@ Every feature gets its own named subdirectory on both the Laravel and Vue sides.
 
 ## Vue Build: Full ESM Bundler
 - `vite.config.js` aliases `vue` to `vue/dist/vue.esm-bundler.js` to include the runtime template compiler
+
+## Teleport to In-App Targets Requires `defer`
+- `LeftNavigationBar.vue` teleports its hamburger button into `#sidebar-toggle-anchor`,
+  which is rendered by `TopNavigationBar.vue` — a sibling inside the same Vue tree.
+- Vue mounts children into a **detached** tree and inserts it into the document last, so a
+  plain `<Teleport to="#selector">` resolves its target via `document.querySelector` before
+  the anchor exists → target is `null`. The teleport's children never mount (`vnode.el` stays
+  `null`), and the next reactive update crashes in `patchElement` with
+  `Cannot set properties of null (setting '__vnode')`.
+- **Rule**: when a Teleport target is rendered by the same Vue app, always add the `defer`
+  prop (Vue 3.5+). `Teleport to="body"` needs no `defer` — that target always exists.
+
+## Auth User Is Provided, Not Re-Fetched
+- `DashboardLayout.vue` fetches `/api/dashboard/auth-user` once and `provide()`s it as `authUser`.
+- Descendants must `inject('authUser', ref(null))` instead of calling the endpoint again.

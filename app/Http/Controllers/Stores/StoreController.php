@@ -15,6 +15,7 @@ class StoreController extends Controller
     {
         return $this->storeService->index(
             $request->string('search')->toString(),
+            $request->string('search_owner')->toString(),
             (int) $request->input('page', 1),
             $request->string('status', 'active')->toString(),
         );

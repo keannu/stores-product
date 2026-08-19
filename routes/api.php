@@ -3,6 +3,7 @@
 use App\Http\Controllers\Stores\StoreController;
 use App\Http\Controllers\Users\UserController;
 use App\Http\Middlewares\Dashboard\RedirectIfNotAuthenticated;
+use App\Http\Middlewares\Stores\RestrictToSuperAdmin;
 use App\Http\Middlewares\Stores\ValidateStoreRequest;
 use App\Http\Middlewares\Users\ValidatePasswordChangeRequest;
 use App\Http\Middlewares\Users\ValidateUserRequest;
@@ -28,15 +29,17 @@ Route::middleware(RedirectIfNotAuthenticated::class)
 
         Route::delete('/dashboard/users/{id}', [UserController::class, 'destroy']);
 
-        // Stores CRUD
-        Route::get('/dashboard/stores/list', [StoreController::class, 'index']);
+        // Stores CRUD (super_admin only)
+        Route::middleware(RestrictToSuperAdmin::class)->group(function () {
+            Route::get('/dashboard/stores/list', [StoreController::class, 'index']);
 
-        Route::post('/dashboard/stores', [StoreController::class, 'store'])
-            ->middleware(ValidateStoreRequest::class);
+            Route::post('/dashboard/stores', [StoreController::class, 'store'])
+                ->middleware(ValidateStoreRequest::class);
 
-        Route::put('/dashboard/stores/{id}', [StoreController::class, 'update'])
-            ->middleware(ValidateStoreRequest::class);
+            Route::put('/dashboard/stores/{id}', [StoreController::class, 'update'])
+                ->middleware(ValidateStoreRequest::class);
 
-        Route::delete('/dashboard/stores/{id}', [StoreController::class, 'destroy']);
+            Route::delete('/dashboard/stores/{id}', [StoreController::class, 'destroy']);
+        });
 
     });
